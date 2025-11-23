@@ -35,7 +35,7 @@ async def on_ready():
     print(f"Bot is ready! Logged in as {bot.user}")
     print(f"Restricted to channel ID: {ALLOWED_CHANNEL_ID}")
     print(f"Restricted to role: {ALLOWED_ROLE_NAME}")
-    for cog in ["keyboard", "mouse"]:
+    for cog in ["keyboard", "mouse", "firefox"]:
         try:
             await bot.load_extension(f"cogs.{cog}")
             print(f"Cog:{cog} loaded successfully!")
