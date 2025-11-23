@@ -1,6 +1,7 @@
 import discord, os
 from dotenv import load_dotenv
 from discord.ext import commands
+from pathlib import Path
 
 #.env 
 load_dotenv()
@@ -9,11 +10,12 @@ load_dotenv()
 TOKEN = os.getenv("TOKEN")
 ALLOWED_CHANNEL_ID = int(os.getenv("ALLOWED_CHANNEL_ID"))
 ALLOWED_ROLE_NAME = os.getenv("ALLOWED_ROLE_NAME")
+IMAGE_DIR = Path(os.getenv("IMAGE_DIR", "temp_images"))
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
-
+bot.image_dir = IMAGE_DIR
 
 #Permission Validation, runs before all commands
 @bot.before_invoke
@@ -39,6 +41,12 @@ async def on_ready():
             print(f"Cog:{cog} loaded successfully!")
         except Exception as e:
             print(f"Failed to load {cog}: {e}")
+    try:
+        IMAGE_DIR.mkdir(exist_ok=True)
+        print(f"Created {IMAGE_DIR} successfully")
+    except Exception as e:
+        print(f"Failed to create image dir: {e}")
+
 
 # Error handler for check failures
 @bot.event
