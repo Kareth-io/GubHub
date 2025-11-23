@@ -1,4 +1,4 @@
-import discord, pyautogui, asyncio, os
+import discord, os
 from dotenv import load_dotenv
 from discord.ext import commands
 
