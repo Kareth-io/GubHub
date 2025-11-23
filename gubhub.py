@@ -14,22 +14,20 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Custom check: Verify channel and role
-def check_permissions():
-    async def predicate(ctx):
-        # Check if command is in the allowed channel
-        if ctx.channel.id != ALLOWED_CHANNEL_ID:
-            print("Failed channel verification")
-            return False
 
-        # Check if user has the required role
-        role = discord.utils.get(ctx.author.roles, name=ALLOWED_ROLE_NAME)
-        if role is None:
-            await ctx.send(f"You need the `{ALLOWED_ROLE_NAME}` role to use this command.")
-            return False
+#Permission Validation, runs before all commands
+@bot.before_invoke
+async def check_permissions(ctx):
+    # Check if command is in the allowed channel
+    if ctx.channel.id != ALLOWED_CHANNEL_ID:
+        raise commands.CommandInvokeError("Error: User wrong channel")
 
-        return True
-    return commands.check(predicate)
+    # Check if user has the required role
+    role = discord.utils.get(ctx.author.roles, name=ALLOWED_ROLE_NAME)
+    if role is None:
+        await ctx.send(f"You need the `{ALLOWED_ROLE_NAME}` role to use this command.")
+        raise commands.CommandInvokeError("Error: User missing role")
+
 
 @bot.event
 async def on_ready():
@@ -40,7 +38,6 @@ async def on_ready():
 
 # Keyboard Commands #
 @bot.command(name="key")
-@check_permissions()
 async def press_key(ctx, key: str):
     """Press a single key on the keyboard. Usage: !key <key>"""
     try:
@@ -50,7 +47,6 @@ async def press_key(ctx, key: str):
         await ctx.send(f"Error pressing key: {e}")
 
 @bot.command(name="type")
-@check_permissions()
 async def type_text(ctx, *, text: str):
     """Type a string of text. Usage: !type <text>"""
     try:
@@ -60,7 +56,6 @@ async def type_text(ctx, *, text: str):
         await ctx.send(f"Error typing text: {e}")
 
 @bot.command(name="hotkey")
-@check_permissions()
 async def press_hotkey(ctx, *keys):
     """Press a hotkey combination. Usage: !hotkey ctrl c"""
     try:
@@ -70,7 +65,6 @@ async def press_hotkey(ctx, *keys):
         await ctx.send(f"Error pressing hotkey: {e}")
 
 @bot.command(name="hold")
-@check_permissions()
 async def hold_key(ctx, key: str, duration: float = 0.5):
     """Hold a key for a duration. Usage: !hold <key> <seconds>"""
     try:
@@ -82,7 +76,6 @@ async def hold_key(ctx, key: str, duration: float = 0.5):
         await ctx.send(f"Error holding key: {e}")
 
 @bot.command(name="keys")
-@check_permissions()
 async def list_keys(ctx):
     """List common available keys."""
     common_keys = f"The List of available keys can be found here: https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys"
@@ -90,7 +83,6 @@ async def list_keys(ctx):
 
 # Mouse Commands #
 @bot.command(name="mouse")
-@check_permissions()
 async def move_mouse(ctx, directions: str, amount: int):
     """Moves the mouse a magical amount of space. Usage: !mouse downleft 10"""
     try:
@@ -113,7 +105,6 @@ async def move_mouse(ctx, directions: str, amount: int):
         await ctx.send(f"Error moving mouse: {e}")
 
 @bot.command(name="click")
-@check_permissions()
 async def click(ctx, btn: str = "left"):
     """Clicks the mouse, optionally can do middle, or right click. Usage: !click middle"""
     try:
@@ -123,7 +114,6 @@ async def click(ctx, btn: str = "left"):
         await ctx.send(f"Error clicking mouse: {e}")
 
 @bot.command(name="scroll")
-@check_permissions()
 async def scroll(ctx, direction: str, amount: int):
     """Scrolls a specified direction. Usage: !scroll up 10"""
     try:
@@ -139,10 +129,16 @@ async def scroll(ctx, direction: str, amount: int):
 # Error handler for check failures
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CheckFailure):
-        pass  # Already handled in the check
+    if isinstance(error, commands.CommandInvokeError):
+        # This block will handle CommandInvokeError and print to console
+        print(f"CommandInvokeError in command '{ctx.command.name}':")
+        print(f"Original exception: {error.original}")
+        # You can also print the full traceback for more details:
+        # import traceback
+        # traceback.print_exception(type(error.original), error.original, error.original.__traceback__)
     else:
-        await ctx.send(f"An error occurred: {error}")
+        # For other types of errors, you might want to send a message to Discord
+        await ctx.send(f"An unexpected error occurred: {error}")
 
 bot.run(TOKEN)
 
