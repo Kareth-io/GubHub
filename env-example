@@ -1,0 +1,7 @@
+#Discord Bot Token
+TOKEN=""
+#Discord Channel ID
+ALLOWED_CHANNEL_ID=
+#Discord Role allowed to issue commands 
+ALLOWED_ROLE_NAME="" 
+
