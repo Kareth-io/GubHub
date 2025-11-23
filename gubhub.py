@@ -51,6 +51,8 @@ async def on_ready():
 # Error handler for check failures
 @bot.event
 async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
     if isinstance(error, commands.CommandInvokeError):
         # This block will handle CommandInvokeError and print to console
         print(f"CommandInvokeError in command '{ctx.command.name}':")
