@@ -26,7 +26,7 @@ class FirefoxController(commands.Cog):
         if self.driver:
             self.driver.quit()
     
-    @commands.command(name="start")
+    @commands.command(name="ffstart")
     async def start_browser(self, ctx):
         """Start the Firefox browser
         
@@ -55,7 +55,7 @@ class FirefoxController(commands.Cog):
                 except Exception as e:
                     await ctx.send(f"Error starting Firefox: {str(e)}")
     
-    @commands.command(name="stop")
+    @commands.command(name="ffstop")
     async def stop_browser(self, ctx):
         """Stop the Firefox browser"""
         async with self.browser_lock:
@@ -70,7 +70,7 @@ class FirefoxController(commands.Cog):
             except Exception as e:
                 await ctx.send(f"Error stopping Firefox: {str(e)}")
     
-    @commands.command(name="goto")
+    @commands.command(name="goto", aliases=["url"])
     async def goto_url(self, ctx, url: str):
         """Navigate to a specific URL
         
@@ -127,7 +127,7 @@ class FirefoxController(commands.Cog):
             except Exception as e:
                 await ctx.send(f"Error searching YouTube: {str(e)}")
     
-    @commands.command(name="refresh")
+    @commands.command(name="ffrefresh")
     async def refresh(self, ctx):
         """Refresh the current page"""
         if not self.driver:
@@ -140,7 +140,7 @@ class FirefoxController(commands.Cog):
         except Exception as e:
             await ctx.send(f"Error: {str(e)}")
     
-    @commands.command(name="info")
+    @commands.command(name="ffinfo")
     async def get_info(self, ctx):
         """Get information about the current page"""
         if not self.driver:
