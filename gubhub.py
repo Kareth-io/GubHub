@@ -7,7 +7,7 @@ load_dotenv()
 
 #Globals
 TOKEN = os.getenv("TOKEN")
-ALLOWED_CHANNEL_ID = os.getenv("ALLOWED_CHANNEL_ID")
+ALLOWED_CHANNEL_ID = int(os.getenv("ALLOWED_CHANNEL_ID"))
 ALLOWED_ROLE_NAME = os.getenv("ALLOWED_ROLE_NAME")
 
 intents = discord.Intents.default()
@@ -37,6 +37,8 @@ async def on_ready():
     print(f"Restricted to channel ID: {ALLOWED_CHANNEL_ID}")
     print(f"Restricted to role: {ALLOWED_ROLE_NAME}")
 
+
+# Keyboard Commands #
 @bot.command(name="key")
 @check_permissions()
 async def press_key(ctx, key: str):
@@ -85,6 +87,40 @@ async def list_keys(ctx):
     """List common available keys."""
     common_keys = f"The List of available keys can be found here: https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys"
     await ctx.send(common_keys)
+
+# Mouse Commands #
+@bot.command(name="mouse")
+@check_permissions()
+async def move_mouse(ctx, directions: str, amount: int):
+    """Moves the mouse a magical amount of space. Usage: !mouse downleft 10"""
+    try:
+        increment=30 #How many pixels we move per "amount"
+        xOffset=0
+        yOffset=0
+
+        if "up" in directions.lower():
+            yOffset += (amount * -increment)
+        if "down" in directions.lower():
+            yOffset += (amount * increment)
+        if "right" in directions.lower():
+            xOffset += (amount * increment)
+        if "left" in directions.lower():
+            xOffset += (amount * -increment)
+       
+        pyautogui.move(xOffset, yOffset, 1)
+        await ctx.send("Mouse moved")
+    except Exception as e:
+        await ctx.send(f"Error moving mouse: {e}")
+
+@bot.command(name="click")
+@check_permissions()
+async def click(ctx, btn: str = "left"):
+    """Clicks the mouse, optionally can do middle, or right click. Usage: !click middle"""
+    try:
+        pyautogui.click(button=btn)
+        await ctx.send(f"{btn} mouse button clicked")
+    except Exception as e:
+        await ctx.send(f"Error clicking mouse: {e}")
 
 # Error handler for check failures
 @bot.event
