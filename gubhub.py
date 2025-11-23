@@ -122,6 +122,20 @@ async def click(ctx, btn: str = "left"):
     except Exception as e:
         await ctx.send(f"Error clicking mouse: {e}")
 
+@bot.command(name="scroll")
+@check_permissions()
+async def scroll(ctx, direction: str, amount: int):
+    """Scrolls a specified direction. Usage: !scroll up 10"""
+    try:
+        if direction == "down":
+            amount=-amount
+        increment=30
+
+        pyautogui.scroll(amount * increment)
+        await ctx.send(f"Mouse scrolled")
+    except Exception as e:
+        await ctx.send(f"Error scrolling mouse: {e}")
+
 # Error handler for check failures
 @bot.event
 async def on_command_error(ctx, error):
