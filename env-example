@@ -5,3 +5,18 @@ ALLOWED_CHANNEL_ID=
 #Discord Role allowed to issue commands 
 ALLOWED_ROLE_NAME="" 
 
+#FireFox
+#You can locate profiles in C:\Users\USERNAME\AppData\Roaming\Mozilla\Firefox\Profiles
+FIREFOX_PROFILE =""
+
+#OBS settings for recrodings
+OBS_HOST="localhost"
+OBS_PORT=4455
+OBS_PASSWORD=""
+
+#GoogleDrive
+#OPTIONAL: Google Console  Service account credentials to automatically upload
+GOOGLE_CRED_FILE="./service_account.json"
+#The Folder ID we ship them to
+GOOGLE_FOLDER_ID=""
+
