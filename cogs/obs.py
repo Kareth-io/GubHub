@@ -15,15 +15,16 @@ class OBSControl(commands.Cog):
     """A Discord cog to control OBS Studio via websocket"""
     
     def __init__(self, bot, obs_host="localhost", obs_port=4455, obs_password="", 
-                 google_creds_file=None, google_folder_id=None):
+                 google_credentials__file=None, google_token_file="token.pickle" google_folder_id=None):
         self.bot = bot
         self.obs_host = obs_host
         self.obs_port = obs_port
         self.obs_password = obs_password
         self.obs_client = None
         self.obs_process = None
-        self.google_creds_file = google_creds_file
         self.google_folder_id = google_folder_id
+        self.google_credentials_file = google_credentials_file
+        self.google_token_file = google_token_file
         self.drive_service = None
         
         # Initialize Google Drive service if credentials provided
@@ -31,19 +32,40 @@ class OBSControl(commands.Cog):
             self._init_google_drive()
         
     def _init_google_drive(self):
-        """Initialize Google Drive API service"""
+        """Initialize Google Drive API service using user OAuth2"""
         try:
-            creds = service_account.Credentials.from_service_account_file(
-                self.google_creds_file,
-                scopes=['https://www.googleapis.com/auth/drive.file']
-            )
+            creds = None
+            
+            # The token.pickle file stores the user's access and refresh tokens
+            if os.path.exists(self.google_token_file):
+                with open(self.google_token_file, 'rb') as token:
+                    creds = pickle.load(token)
+            
+            # If there are no (valid) credentials available, let the user log in
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    print("Refreshing Google Drive credentials...")
+                    creds.refresh(Request())
+                else:
+                    print("Starting Google Drive OAuth flow...")
+                    print("A browser window will open for you to authorize the application.")
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        self.google_credentials_file, self.SCOPES)
+                    creds = flow.run_local_server(port=0)
+                
+                # Save the credentials for the next run
+                with open(self.google_token_file, 'wb') as token:
+                    pickle.dump(creds, token)
+                print("Google Drive credentials saved!")
+            
             self.drive_service = build('drive', 'v3', credentials=creds)
             print("Google Drive service initialized successfully")
+            
         except Exception as e:
             print(f"Failed to initialize Google Drive: {e}")
             self.drive_service = None
     
-    def _upload_to_drive(self, file_path: str):
+    def _upload_to_drive(self, file_path: str) -> Optional[str]:
         """Upload a file to Google Drive and return the file ID"""
         if not self.drive_service:
             print("Google Drive service not initialized")
@@ -72,7 +94,7 @@ class OBSControl(commands.Cog):
         except Exception as e:
             print(f"Failed to upload to Google Drive: {e}")
             return None
-    
+
     def _get_latest_replay_file(self):
         """Get the most recently created replay file from OBS output directory"""
         try:
@@ -211,7 +233,7 @@ class OBSControl(commands.Cog):
         except Exception as e:
             await ctx.send(f"ERROR: Failed to start replay buffer: {str(e)}")
     
-    @commands.command(name="obs_save_replay")
+    @commands.command(name="obs_save_replay", aliases=["clip"])
     async def save_replay(self, ctx):
         """Save the current replay buffer, upload to Google Drive, and delete locally"""
         
@@ -249,7 +271,7 @@ class OBSControl(commands.Cog):
                     # Delete the local file after successful upload
                     try:
                         os.remove(replay_file)
-                        await upload_msg.edit(content=f"Replay saved and uploaded to Google Drive!\n🗑️ Local file deleted: `{file_name}`")
+                        await upload_msg.edit(content=f"Replay saved and uploaded to Google Drive!\nLocal file deleted: `{file_name}`")
                     except Exception as e:
                         await upload_msg.edit(content=f"Replay uploaded to Google Drive!\nFailed to delete local file: {str(e)}")
                 else:
@@ -340,6 +362,7 @@ async def setup(bot):
         obs_host=os.getenv("OBS_HOST", "localhost"),
         obs_port=int(os.getenv("OBS_PORT", 4455)),
         obs_password=os.getenv("OBS_PASSWORD"),  # Set your OBS websocket password here
-        google_creds_file="path/to/service_account.json",  # Path to Google service account JSON
-        google_folder_id=None  # Optional: specific Google Drive folder ID to upload to
+        google_credentials_file=os.getenv("GOOGLE_CRED_FILE"),# Path to Google service account JSON
+        google_token_file="token.pickle"
+        google_folder_id=os.getenv("GOOGLE_FOLDER_ID")  # Optional: specific Google Drive folder ID to upload to
     ))
