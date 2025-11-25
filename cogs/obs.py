@@ -5,17 +5,20 @@ import subprocess
 import asyncio
 import os
 import time
-from google.oauth2.credentials import Credentials
-from google.oauth2 import service_account
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from pathlib import Path
+import pickle
 
 class OBSControl(commands.Cog):
     """A Discord cog to control OBS Studio via websocket"""
     
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
     def __init__(self, bot, obs_host="localhost", obs_port=4455, obs_password="", 
-                 google_credentials__file=None, google_token_file="token.pickle" google_folder_id=None):
+                 google_credentials_file=None, google_token_file="token.pickle", google_folder_id=None):
         self.bot = bot
         self.obs_host = obs_host
         self.obs_port = obs_port
@@ -28,7 +31,7 @@ class OBSControl(commands.Cog):
         self.drive_service = None
         
         # Initialize Google Drive service if credentials provided
-        if self.google_creds_file:
+        if self.google_credentials_file:
             self._init_google_drive()
         
     def _init_google_drive(self):
@@ -65,7 +68,7 @@ class OBSControl(commands.Cog):
             print(f"Failed to initialize Google Drive: {e}")
             self.drive_service = None
     
-    def _upload_to_drive(self, file_path: str) -> Optional[str]:
+    def _upload_to_drive(self, file_path: str):
         """Upload a file to Google Drive and return the file ID"""
         if not self.drive_service:
             print("Google Drive service not initialized")
@@ -363,6 +366,7 @@ async def setup(bot):
         obs_port=int(os.getenv("OBS_PORT", 4455)),
         obs_password=os.getenv("OBS_PASSWORD"),  # Set your OBS websocket password here
         google_credentials_file=os.getenv("GOOGLE_CRED_FILE"),# Path to Google service account JSON
-        google_token_file="token.pickle"
+        google_token_file=os.path.dirname(os.getenv("GOOGLE_CRED_FILE")) + "token.pickle",
         google_folder_id=os.getenv("GOOGLE_FOLDER_ID")  # Optional: specific Google Drive folder ID to upload to
     ))
+
