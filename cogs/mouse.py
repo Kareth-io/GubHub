@@ -85,7 +85,7 @@ class MouseCommands(commands.Cog):
                         return
             
             # Try to locate the image on screen
-            location = pyautogui.locateOnScreen(str(image_path), confidence=0.8)
+            location = pyautogui.locateOnScreen(str(image_path), confidence=0.5)
             
             if location is not None:
                 # Get center point of the found image
