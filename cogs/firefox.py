@@ -1,23 +1,15 @@
-import discord
+import discord, os, asyncio
 from discord.ext import commands
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver import FirefoxProfile
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import asyncio
-from typing import Optional
-import io
-import os
 
 class FirefoxController(commands.Cog):
     """Control Firefox browser through Discord commands"""
     
     def __init__(self, bot):
         self.bot = bot
-        self.driver: Optional[webdriver.Firefox] = None
+        self.driver = None
         self.browser_lock = asyncio.Lock()
         self.bookmarks = {}  # Dictionary to store bookmarks {name: url}
     
@@ -32,11 +24,13 @@ class FirefoxController(commands.Cog):
         
         Usage: !start 
         """
+
+        #Loads the users specified profile to persist things like plugins/bookmarks
         profile_name=os.getenv("FIREFOX_PROFILE")
         user=os.environ.get("USERNAME")
         profile=f"C:/Users/{user}/AppData/Roaming/Mozilla/Firefox/Profiles/{profile_name}"
-        print(f"FireFox Profile: {profile}")
-        addons = [a for a in os.listdir(f"{profile}/extensions") if a.endswith("xpi")]
+        print(f"Firefox Profile: {profile}")
+        
         async with self.browser_lock:
             if self.driver:
                 await ctx.send("Firefox is already running!")
@@ -48,9 +42,6 @@ class FirefoxController(commands.Cog):
                     options.add_argument("-profile")
                     options.add_argument(profile)
                     self.driver = webdriver.Firefox(options=options)
-                    #for addon in addons:
-                    #    print("Installing Firefox Addon: {addon}")
-                    #    driver.install_addon(f"{profile}/extensions/{addon}", temporary=True)
                     await ctx.send(f"Firefox started")
                 except Exception as e:
                     await ctx.send(f"Error starting Firefox: {str(e)}")
@@ -192,7 +183,7 @@ class FirefoxController(commands.Cog):
                 await ctx.send(f"JavaScript executed!\n```\n{result_str}\n```")
             except Exception as e:
                 await ctx.send(f"Error executing JavaScript: {str(e)}")
-    
+    #Bookmarks 
     @commands.command(name="bookmark", aliases=["addbookmark"])
     async def add_bookmark(self, ctx, name: str, url: str = None):
         """Add a bookmark for the current page or specified URL
