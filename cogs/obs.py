@@ -1,16 +1,11 @@
-import discord
+import discord, subprocess, asyncio, os, time, pickle
 from discord.ext import commands
 import obsws_python as obs
-import subprocess
-import asyncio
-import os
-import time
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from pathlib import Path
-import pickle
 
 class OBSControl(commands.Cog):
     """A Discord cog to control OBS Studio via websocket"""
