@@ -1,7 +1,6 @@
 import discord, os
 from dotenv import load_dotenv
 from discord.ext import commands
-from pathlib import Path
 
 #.env 
 load_dotenv()
@@ -10,7 +9,7 @@ load_dotenv()
 TOKEN = os.getenv("TOKEN")
 ALLOWED_CHANNEL_ID = int(os.getenv("ALLOWED_CHANNEL_ID"))
 ALLOWED_ROLE_NAME = os.getenv("ALLOWED_ROLE_NAME")
-IMAGE_DIR = Path(os.getenv("IMAGE_DIR", "temp_images"))
+IMAGE_DIR = os.getenv("IMAGE_DIR", "temp_images")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -32,6 +31,7 @@ async def check_permissions(ctx):
 
 @bot.event
 async def on_ready():
+    print("[---- STARTUP ----]")
     print(f"Bot is ready! Logged in as {bot.user}")
     print(f"Restricted to channel ID: {ALLOWED_CHANNEL_ID}")
     print(f"Restricted to role: {ALLOWED_ROLE_NAME}")
@@ -42,24 +42,23 @@ async def on_ready():
         except Exception as e:
             print(f"Failed to load {cog}: {e}")
     try:
-        IMAGE_DIR.mkdir(exist_ok=True)
+        os.makedirs(IMAGE_DIR, exist_ok=True)
         print(f"Created {IMAGE_DIR} successfully")
     except Exception as e:
         print(f"Failed to create image dir: {e}")
+    print("[---- ------- ----]")
 
 
-# Error handler for check failures
+# Error handler for check for and handle/suppress specific failures
 @bot.event
 async def on_command_error(ctx, error):
+    #Reduce noise pollutions of people spamming random ! commands for fun
     if isinstance(error, commands.CommandNotFound):
         return
+    #Scoping command specific errors 
     if isinstance(error, commands.CommandInvokeError):
-        # This block will handle CommandInvokeError and print to console
         print(f"CommandInvokeError in command '{ctx.command.name}':")
         print(f"Original exception: {error.original}")
-        # You can also print the full traceback for more details:
-        # import traceback
-        # traceback.print_exception(type(error.original), error.original, error.original.__traceback__)
     else:
         # For other types of errors, you might want to send a message to Discord
         await ctx.send(f"An unexpected error occurred: {error}")
